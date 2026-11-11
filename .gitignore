@@ -1,0 +1,10 @@
+node_modules/
+dist/
+public/runtime/python/
+test-results/
+playwright-report/
+.env
+.env.*
+!.env.example
+*.log
+.data/

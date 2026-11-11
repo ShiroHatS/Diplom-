@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Lumo — основы Python, JavaScript и HTML + CSS. Учитесь программированию в своём темпе." />
+    <meta name="theme-color" content="#f5f7fc" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <title>Lumo — программирование в твоём темпе</title>
+    <script>
+      // Применяем сохранённую тему до отрисовки, чтобы избежать светлой вспышки.
+      try {
+        const theme = localStorage.getItem('lumo.theme');
+        if (theme === 'light' || theme === 'dark') document.documentElement.dataset.theme = theme;
+        if (localStorage.getItem('lumo.language') === 'en') document.documentElement.lang = 'en';
+      } catch { /* Сайт работает и при запрете хранилища браузера. */ }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript lang="ru">Для интерактивной версии Lumo включите JavaScript в настройках браузера.</noscript>
+    <noscript lang="en">Enable JavaScript in your browser to use the interactive version of Lumo.</noscript>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+{
+  "name": "lumo-accessible-learning",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "dev:web": "vite --host 127.0.0.1",
+    "dev:api": "node --watch server/index.js",
+    "start": "node server/index.js",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "test:a11y": "playwright test",
+    "test:api": "node --test server/tests/*.test.js"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "0.5.16",
+    "acorn": "8.19.0",
+    "dompurify": "3.4.17",
+    "express": "5.3.0",
+    "express-rate-limit": "8.7.4",
+    "helmet": "8.3.0",
+    "pg": "8.23.1",
+    "pyodide": "314.0.7",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.10.2",
+    "@playwright/test": "^1.56.1",
+    "@vitejs/plugin-react": "6.3.0",
+    "vite": "8.3.8"
+  }
+}

@@ -1,0 +1,20 @@
+# Сайт и API работают вместе. Бесплатная база Render здесь не создаётся:
+# она истекает через 30 дней. DATABASE_URL указывает на отдельный проект Neon.
+services:
+  - type: web
+    name: lumo-learning
+    runtime: node
+    plan: free
+    buildCommand: npm install --global pnpm@11.25.0 && pnpm install --frozen-lockfile --prod=false && pnpm build
+    startCommand: node server/index.js
+    healthCheckPath: /api/ready
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        value: 0.0.0.0
+      - key: TRUST_PROXY_HOPS
+        value: "1"
+      - key: DATABASE_URL
+        sync: false
