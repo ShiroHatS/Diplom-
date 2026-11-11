@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve, dirname, basename } from 'node:path';
 import { openDatabase } from '../database.js';
 import { createApp } from '../app.js';
-import { emptyProgress } from '../../shared/progress.js';
+import { emptyProgress, lessonKeys, normalizeProgress, validProgress } from '../../shared/progress.js';
 
 let db, server, base;
 const origin = 'http://127.0.0.1:4173';
@@ -28,6 +28,27 @@ async function request(method, path, { data, session, headers = {}, endpoint = b
   return { status: response.status, body: await response.json(), headers: response.headers, cookie: response.headers.get('set-cookie')?.split(';')[0] };
 }
 const register = username => request('POST', '/auth/register', { data: { username: username || name(), password } });
+
+test('expanded courses preserve old progress and reject unknown lesson indexes', () => {
+  const old = emptyProgress(); old.lesson = 2; old.positions.python = 2; old.completed = ['python-0', 'web-2']; old.drafts['web-2'] = '/* saved */';
+  assert.deepEqual(normalizeProgress(old), old);
+  const expanded = emptyProgress(); expanded.lesson = 5; expanded.positions.python = 5; expanded.completed = [...lessonKeys];
+  assert.equal(validProgress(expanded), true);
+  assert.deepEqual(normalizeProgress(expanded), expanded);
+  expanded.lesson = 6;
+  assert.equal(validProgress(expanded), false);
+});
+
+test('all new lesson drafts and large escaped content round-trip through the API', async () => {
+  const account = await register();
+  const progress = emptyProgress(); progress.course = 'web'; progress.lesson = 5; progress.positions = { python: 5, javascript: 5, web: 5 };
+  progress.completed = [...lessonKeys];
+  progress.drafts = Object.fromEntries(lessonKeys.map(key => [key, '\u0001'.repeat(2000)]));
+  const saved = await request('PUT', '/progress', { session: account, data: { revision: 0, progress } });
+  assert.equal(saved.status, 200);
+  assert.deepEqual(saved.body.progress, progress);
+  assert.deepEqual((await request('GET', '/progress', { session: account })).body.progress, progress);
+});
 
 test('registration stores hashes, session restores, and logout revokes access', async () => {
   const account = await register();

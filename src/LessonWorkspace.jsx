@@ -1,6 +1,7 @@
 import { lessonContent, courseIds } from './lessons.js';
 import CodeEditor from './CodeEditor.jsx';
 import AssignmentCheck from './AssignmentCheck.jsx';
+import { curriculum } from '../shared/curriculum.js';
 
 const ui = {
   ru: {
@@ -91,8 +92,8 @@ export default function LessonWorkspace({ language, simpleLanguage, learning, se
               <dl className="term-definition"><dt>{t.newTerm}: <strong>{lesson.term}</strong></dt><dd>{lesson.definition}</dd></dl>
             </div>}
             {step === 1 && <div className="lesson-reading"><p>{t.exampleLabel}</p><pre className="lesson-code"><code>{lesson.example}</code></pre><p>{lesson.explanation}</p><p className="lesson-help">{t.exampleHelp}</p></div>}
-            {step === 2 && <div className="lesson-reading"><p>{lesson.task}</p><CodeEditor value={draft} onChange={saveDraft} mode={course === 'web' ? (learning.lesson === 0 ? 'html' : 'css') : course} language={language} reduceMotion={reduceMotion} onCheck={() => { saveDraft(draft); selectStep(3); }} /></div>}
-            {step === 3 && <div className="lesson-reading"><p>{t.checkTitle}</p><p>{lesson.task}</p><div className="check-answer"><strong>{t.yourAnswer}</strong><pre><code>{hasDraft ? draft : t.emptyAnswer}</code></pre></div><AssignmentCheck course={course} index={learning.lesson} code={hasDraft ? draft : ''} language={language} lessonHint={lesson.hint} onPassed={recordPassed} onEdit={() => selectStep(2)} /><details className="solution-details"><summary>{t.showSolution}<span aria-hidden="true">+</span></summary><pre className="lesson-code"><code>{lesson.solution}</code></pre><p>{t.solutionNote}</p></details></div>}
+            {step === 2 && <div className="lesson-reading"><p>{lesson.task}</p><CodeEditor value={draft} onChange={saveDraft} mode={curriculum[course][learning.lesson].mode} previewKind={curriculum[course][learning.lesson].kind} language={language} reduceMotion={reduceMotion} onCheck={() => { saveDraft(draft); selectStep(3); }} /></div>}
+            {step === 3 && <div className="lesson-reading"><p>{t.checkTitle}</p><p>{lesson.task}</p><div className="check-answer"><strong>{t.yourAnswer}</strong><pre><code>{hasDraft ? draft : t.emptyAnswer}</code></pre></div><AssignmentCheck course={course} index={learning.lesson} code={hasDraft ? draft : ''} language={language} lessonHint={lesson.hint} lessonStrategy={lesson.strategy} onPassed={recordPassed} onEdit={() => selectStep(2)} /><details className="solution-details"><summary>{t.showSolution}<span aria-hidden="true">+</span></summary><pre className="lesson-code"><code>{lesson.solution}</code></pre><p>{t.solutionNote}</p></details></div>}
           </div>
           <div className="lesson-actions">
             {step > 0 && <button type="button" className="lesson-back" onClick={() => selectStep(step - 1)}>{t.previous}</button>}

@@ -19,7 +19,7 @@ self.onmessage = async ({ data }) => {
     });
     initialized = true;
     send({ type: 'running' });
-    if (Number.isInteger(data.assessment) && data.assessment >= 0 && data.assessment <= 2) {
+    if (Number.isInteger(data.assessment) && data.assessment >= 0 && data.assessment < data.assessmentCount) {
       // AST и повторные запуски остаются внутри того же изолированного Worker.
       python.globals.set('_lumo_student_code', data.code);
       python.globals.set('_lumo_lesson', data.assessment);

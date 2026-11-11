@@ -35,7 +35,8 @@ export function createApp({ db, origins, secureCookies = false, trustProxy = fal
     if (!['GET', 'HEAD'].includes(req.method) && (!origin || req.get('X-Lumo-Request') !== '1')) return failure(res, 403, 'ORIGIN_DENIED');
     next();
   });
-  app.use('/api', express.json({ limit: '96kb', strict: true }));
+  // Один ограниченный черновик на урок; учитываем JSON-экранирование символов.
+  app.use('/api', express.json({ limit: 16384 + lessonKeys.length * 12288, strict: true }));
   const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, limit: authLimit, standardHeaders: 'draft-8', legacyHeaders: false, handler: (_req, res) => failure(res, 429, 'RATE_LIMITED') });
   const apiLimiter = rateLimit({ windowMs: 60000, limit: apiLimit, standardHeaders: 'draft-8', legacyHeaders: false, handler: (_req, res) => failure(res, 429, 'RATE_LIMITED') });
   app.use('/api', apiLimiter);

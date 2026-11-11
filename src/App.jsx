@@ -6,6 +6,7 @@ import { applyPreferences, defaultPreferences, loadPreferences, savePreferences 
 import LessonWorkspace from './LessonWorkspace.jsx';
 import { useLearningSync } from './account/useLearningSync.js';
 import AccountDialog, { AccountBar } from './account/AccountDialog.jsx';
+import { lessonContent } from './lessons.js';
 
 // Хранилище может быть недоступно в приватном режиме. Это не мешает пользоваться сайтом.
 function readPreference(key, allowed, fallback) {
@@ -143,7 +144,7 @@ export default function App() {
             <div className="course-card-top"><span className="course-icon" aria-hidden="true">{course.icon === 'python' ? 'Py' : course.icon === 'js' ? 'JS' : <Icon name="code" />}</span><span className="level">{t.beginner}</span></div>
             <h3>{course.name}</h3><p className="course-tag">{course.tag}</p><p className="course-description">{course.description}</p>
             {/* details даёт встроенные клавиатурное управление и объявление состояния. */}
-            <details><summary>{t.syllabus}<span className="details-plus" aria-hidden="true">+</span></summary><ol>{course.topics.map(topic => <li key={topic}>{topic}</li>)}</ol></details>
+            <details><summary>{t.syllabus}<span className="details-plus" aria-hidden="true">+</span></summary><ol>{lessonContent[language][course.id].map(lesson => <li key={lesson.title}>{lesson.title}</li>)}</ol></details>
             <a className="course-start" href="#learn" onClick={() => startCourse(course.id)} aria-label={`${t.startCourse}: ${course.name}`}>{t.startCourse}<Icon name="arrow" /></a>
           </article>)}
         </div>

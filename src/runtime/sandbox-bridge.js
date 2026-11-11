@@ -38,7 +38,7 @@ addEventListener('message', event => {
       notify({ type: 'error', name: event.lineno ? 'SyntaxError' : 'RuntimeError', message: event.message || 'Worker could not start.', line: event.lineno ? Math.max(1, event.lineno - prefixLines) : null });
       worker.terminate();
     };
-    if (data.language === 'python') worker.postMessage({ code: data.code, runtimeURL: data.runtimeURL, assessment: data.assessment, assessmentSource: data.assessmentSource });
+    if (data.language === 'python') worker.postMessage({ code: data.code, runtimeURL: data.runtimeURL, assessment: data.assessment, assessmentCount: data.assessmentCount, assessmentSource: data.assessmentSource });
   } catch (error) { notify({ type: 'error', name: 'RuntimeError', message: String(error) }); }
 });
 notify({ type: 'ready' });

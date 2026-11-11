@@ -3,7 +3,7 @@ import { executeCode } from './runtime/execute.js';
 import { buildPreview } from './runtime/preview.js';
 import { editorText } from './editorText.js';
 
-export default function CodeEditor({ value, onChange, mode, language, reduceMotion, onCheck }) {
+export default function CodeEditor({ value, onChange, mode, language, reduceMotion, previewKind, onCheck }) {
   const t = editorText[language];
   const input = useRef(null);
   const gutter = useRef(null);
@@ -18,8 +18,8 @@ export default function CodeEditor({ value, onChange, mode, language, reduceMoti
   const web = mode === 'html' || mode === 'css';
   // Показываем последний запущенный код; язык и уменьшение движения применяются сразу.
   const preview = useMemo(() => web && snapshot !== null
-    ? buildPreview(snapshot, mode, language, reduceMotion || systemMotion) : '',
-  [web, snapshot, mode, language, reduceMotion, systemMotion]);
+    ? buildPreview(snapshot, mode, language, reduceMotion || systemMotion, previewKind) : '',
+  [web, snapshot, mode, language, reduceMotion, systemMotion, previewKind]);
   const busy = status === 'loading' || status === 'running';
   const stale = snapshot !== null && snapshot !== value;
   const blankOutput = status === 'done' && output.length > 0 && !output.trim();

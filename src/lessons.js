@@ -1,5 +1,7 @@
+import { courses, curriculum } from '../shared/curriculum.js';
+import { additionalLessons } from './additionalLessons.js';
 // Один и тот же порядок уроков в RU/EN позволяет сохранять прогресс без привязки к языку.
-export const courseIds = ['python', 'javascript', 'web'];
+export const courseIds = courses;
 export const lessonContent = {
   ru: {
     python: [
@@ -162,3 +164,7 @@ export const lessonContent = {
     ],
   },
 };
+for (const language of ['ru', 'en']) for (const course of courses) {
+  lessonContent[language][course].push(...additionalLessons[language][course]);
+  if (lessonContent[language][course].length !== curriculum[course].length) throw new Error('Lesson catalogue and progress schema do not match.');
+}

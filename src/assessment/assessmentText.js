@@ -97,3 +97,51 @@ export const assessmentText = {
     },
   },
 };
+
+// Критерии новых уроков остаются общими для обоих языков программирования.
+const additionalChecks = {
+  ru: {
+    costValues: ['price равно 12, а count равно 3.', 'Создай числовые переменные price = 12 и count = 3. Не заключай числа в кавычки.'],
+    costExpression: ['total вычисляется умножением price и count.', 'Вычисли total через price * count. Число 36 само по себе не использует переменные.'],
+    costOutput: ['Команда вывода использует total и показывает 36.', 'Передай total в print или console.log. Не добавляй другой текст к числу.'],
+    costChanges: ['При price = 5 и count = 4 выводится 20.', 'Используй обе переменные в вычислении, чтобы результат менялся вместе с ними.'],
+    loopUsed: ['Команда вывода внутри for использует переменную цикла.', 'Помести вывод переменной number внутрь for. В Python используй range(1, 4).'],
+    loopOutput: ['Выводятся 1, 2 и 3 на отдельных строках.', 'Выводи текущее число, начиная с 1 и заканчивая 3. Проверь границу цикла.'],
+    loopChanges: ['При расширении границы цикл также выводит 4.', 'Не записывай три готовых команды вывода. Одна команда внутри цикла должна работать для каждого числа.'],
+    functionDefined: ['Есть функция double с одним параметром.', 'Создай double с одним параметром: def в Python или function в JavaScript.'],
+    functionOutput: ['Выводится результат вызова double(5), равный 10.', 'Передай вызов double(5) в команду вывода, а не готовое число 10.'],
+    functionValues: ['double возвращает верные результаты для 0, 3 и -2.', 'Верни параметр, умноженный на 2, через return. Не заменяй return командой вывода.'],
+    paragraphText: ['Есть видимый непустой абзац p.', 'Добавь текст внутрь p и не скрывай его стилями.'],
+    listItems: ['В ul есть минимум два видимых непустых пункта li.', 'Внутри ul создай два li и заполни каждый текстом.'],
+    cardSpacing: ['У каждой .card все внутренние и внешние отступы равны 1rem.', 'Задай .card свойства padding: 1rem и margin: 1rem.'],
+    cardBorder: ['У каждой .card сплошная граница 2px со всех сторон.', 'Укажи border: 2px solid и любой цвет.'],
+    cardRelative: ['Отступы карточки следуют увеличению базового шрифта.', 'Используй 1rem, а не 16px, для padding и margin.'],
+    flexLayout: ['У контейнеров .cards включён display: flex.', 'Примени display: flex к .cards, а не к отдельной карточке.'],
+    flexGap: ['Между строками и столбцами задан промежуток 1rem.', 'Укажи gap: 1rem. В отличие от px, rem меняется вместе с размером текста.'],
+    flexWrap: ['Карточки могут переноситься: flex-wrap: wrap.', 'Добавь flex-wrap: wrap в правило .cards.'],
+  },
+  en: {
+    costValues: ['price is 12 and count is 3.', 'Create numeric price = 12 and count = 3 variables. Leave numbers outside quotes.'],
+    costExpression: ['total is calculated by multiplying price and count.', 'Calculate total using price * count. A fixed 36 does not use the variables.'],
+    costOutput: ['The output command uses total and displays 36.', 'Pass total to print or console.log, with no extra text in the output.'],
+    costChanges: ['price = 5 and count = 4 produce 20.', 'Use both variables so the result follows changes to their values.'],
+    loopUsed: ['Output inside for uses the loop variable.', 'Display number inside for. In Python, use range(1, 4).'],
+    loopOutput: ['The output is 1, 2, and 3 on separate lines.', 'Display the current number, starting at 1 and ending at 3. Check the loop boundary.'],
+    loopChanges: ['Extending the boundary also displays 4.', 'Use one output command inside the loop instead of three fixed output commands.'],
+    functionDefined: ['double is a function with one parameter.', 'Create double with one parameter: def in Python or function in JavaScript.'],
+    functionOutput: ['The output comes from double(5) and equals 10.', 'Pass the double(5) call into the output command instead of writing a fixed 10.'],
+    functionValues: ['double returns correct results for 0, 3, and -2.', 'Use return with the parameter multiplied by 2. Output does not replace returning a value.'],
+    paragraphText: ['There is a visible, non-empty p paragraph.', 'Add text inside p and keep it visible.'],
+    listItems: ['A ul contains at least two visible, non-empty li items.', 'Create two li elements inside ul and put text in each.'],
+    cardSpacing: ['Every .card has 1rem padding and margin on all sides.', 'Give .card padding: 1rem and margin: 1rem.'],
+    cardBorder: ['Every .card has a solid 2px border on all sides.', 'Use border: 2px solid with any colour.'],
+    cardRelative: ['Card spacing follows the base font size.', 'Use 1rem instead of 16px for padding and margin.'],
+    flexLayout: ['The .cards containers use display: flex.', 'Apply display: flex to .cards rather than an individual card.'],
+    flexGap: ['Row and column gaps are 1rem.', 'Use gap: 1rem. Unlike px, rem follows text size.'],
+    flexWrap: ['Cards can wrap with flex-wrap: wrap.', 'Add flex-wrap: wrap to the .cards rule.'],
+  },
+};
+for (const language of ['ru', 'en']) for (const [id, [criterion, hint]] of Object.entries(additionalChecks[language])) {
+  assessmentText[language].criteria[id] = criterion;
+  assessmentText[language].hints[id] = hint;
+}

@@ -3,6 +3,7 @@ import pythonSource from './python-worker.js?raw';
 import bridgeSource from './sandbox-bridge.js?raw';
 import pythonAssessment from '../assessment/python-assessment.py?raw';
 import { parse } from 'acorn';
+import { curriculum } from '../../shared/curriculum.js';
 
 const escapeAttribute = value => value.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;');
 
@@ -49,7 +50,7 @@ export function executeCode(language, code, onEvent, options = {}) {
     if (finished || event.source !== frame.contentWindow || event.origin !== 'null') return;
     const message = event.data;
     if (message?.type === 'ready') {
-      frame.contentWindow.postMessage({ type: 'start', language, code, runtimeURL, source, prefixLines, assessment: options.assessment, assessmentSource: pythonAssessment }, '*');
+      frame.contentWindow.postMessage({ type: 'start', language, code, runtimeURL, source, prefixLines, assessment: options.assessment, assessmentCount: curriculum.python.length, assessmentSource: pythonAssessment }, '*');
     } else if (message?.type === 'running') {
       clearTimeout(timeout);
       // Это защита вкладки от бесконечного цикла, не ограничение времени на задание.

@@ -1,6 +1,7 @@
 import { parse } from 'acorn';
 import { executeCode } from '../runtime/execute.js';
 import { checkWeb } from './checkWeb.js';
+import { curriculum } from '../../shared/curriculum.js';
 
 function nodes(root) {
   const result = [];
@@ -66,7 +67,7 @@ async function checkJavaScript(code, index, signal, onProgress) {
     add('nameStored', assignment('name') && typeof name === 'string' && name.trim());
     add('nameUsed', calls.some(call => call.arguments.some(arg => references(arg, 'name'))));
     add('nameOutput', typeof name === 'string' && name.trim() && initial.output.some(text => text.trim() === name.trim()) && !initial.truncated);
-  } else {
+  } else if (index === 2) {
     const initializer = assignment('age');
     add('ageSet', initializer && initial.inspected === 14);
     add('ageIf', all.some(node => node.type === 'IfStatement' && references(node.test, 'age') && nodes(node.consequent).some(isLog)));
@@ -81,6 +82,38 @@ async function checkJavaScript(code, index, signal, onProgress) {
     }
     add('ageBelow', outcomes.get(13) === '');
     add('ageBoundary', accepted.includes(outcomes.get(14)) && accepted.includes(outcomes.get(15)));
+  } else if (index === 3) {
+    const price = assignment('price'), count = assignment('count'), total = assignment('total');
+    add('costValues', price?.type === 'Literal' && price.value === 12 && count?.type === 'Literal' && count.value === 3);
+    add('costExpression', total && references(total, 'price') && references(total, 'count') && nodes(total).some(node => node.type === 'BinaryExpression' && node.operator === '*'));
+    add('costOutput', calls.some(call => call.arguments.some(arg => references(arg, 'total'))) && initial.output.join('\n').trim() === '36' && !initial.truncated);
+    let changed = false;
+    if (price && count) {
+      let variant = code;
+      for (const [node, value] of [[price, 5], [count, 4]].sort((a, b) => b[0].start - a[0].start)) variant = variant.slice(0, node.start) + value + variant.slice(node.end);
+      const trial = await runCode('javascript', variant, signal, onProgress);
+      changed = trial.output.join('\n').trim() === '20' && !trial.truncated;
+    }
+    add('costChanges', changed);
+  } else if (index === 4) {
+    const loop = all.find(node => ['ForStatement', 'ForOfStatement'].includes(node.type) && nodes(node.body).some(isLog));
+    const variable = loop?.type === 'ForStatement' ? loop.init?.declarations?.[0]?.id?.name : loop?.left?.declarations?.[0]?.id?.name;
+    add('loopUsed', variable && nodes(loop.body).filter(isLog).some(call => call.arguments.some(arg => references(arg, variable))));
+    add('loopOutput', initial.output.join('\n').trim() === '1\n2\n3' && !initial.truncated);
+    let variant;
+    if (loop?.type === 'ForStatement' && loop.test?.type === 'BinaryExpression' && loop.test.right.type === 'Literal' && typeof loop.test.right.value === 'number') {
+      const bound = loop.test.right;
+      variant = code.slice(0, bound.start) + (bound.value + 1) + code.slice(bound.end);
+    } else if (loop?.type === 'ForOfStatement') variant = code.slice(0, loop.right.start) + '[1,2,3,4]' + code.slice(loop.right.end);
+    const trial = variant ? await runCode('javascript', variant, signal, onProgress) : null;
+    add('loopChanges', trial && trial.output.join('\n').trim() === '1\n2\n3\n4' && !trial.truncated);
+  } else if (index === 5) {
+    const declaration = tree.body.find(node => node.type === 'FunctionDeclaration' && node.id?.name === 'double');
+    const functionNode = declaration || assignment('double');
+    add('functionDefined', ['FunctionDeclaration', 'FunctionExpression', 'ArrowFunctionExpression'].includes(functionNode?.type) && functionNode.params.length === 1);
+    add('functionOutput', initial.output.join('\n').trim() === '10' && !initial.truncated && calls.some(call => call.arguments.some(arg => nodes(arg).some(node => node.type === 'CallExpression' && node.callee.name === 'double'))));
+    const trial = await runCode('javascript', `${code}\ntry { const values = [double(0), double(3), double(-2)]; console.log(values.every((value, i) => typeof value === 'number' && value === [0, 6, -4][i]) ? '__lumo_double_ok__' : '__lumo_probe_failed__'); } catch { console.log('__lumo_probe_failed__'); }`, signal, onProgress);
+    add('functionValues', trial.output.at(-1) === '__lumo_double_ok__' && !trial.truncated);
   }
   return checks;
 }
@@ -92,6 +125,7 @@ export function checkAssignment({ course, index, code }, onEvent) {
     try {
       onEvent({ type: course === 'python' ? 'loading' : 'running' });
       let checks;
+      if (!curriculum[course]?.[index]) throw { type: 'load-error' };
       if (!code.trim()) checks = [{ id: 'answer', passed: false }];
       else if (course === 'python') {
         const result = await runCode(course, code, signal, onEvent, { assessment: index });

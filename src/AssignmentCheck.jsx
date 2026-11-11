@@ -3,7 +3,7 @@ import { checkAssignment } from './assessment/checkAssignment.js';
 import { assessmentText } from './assessment/assessmentText.js';
 import { editorText } from './editorText.js';
 
-export default function AssignmentCheck({ course, index, code, language, lessonHint, onPassed, onEdit }) {
+export default function AssignmentCheck({ course, index, code, language, lessonHint, lessonStrategy, onPassed, onEdit }) {
   const t = assessmentText[language];
   const cancel = useRef(null);
   const [status, setStatus] = useState('ready');
@@ -12,7 +12,7 @@ export default function AssignmentCheck({ course, index, code, language, lessonH
   const [hintCount, setHintCount] = useState(0);
   const busy = status === 'loading' || status === 'running';
   const missing = checks.find(check => !check.passed)?.id;
-  const hints = [lessonHint, t.fallbackHint, t.strategies[course][index]];
+  const hints = [lessonHint, t.fallbackHint, lessonStrategy || t.strategies[course][index]];
 
   // Уход на практику или в другой урок останавливает проверку, а не оставляет её в фоне.
   useEffect(() => () => cancel.current?.(), []);
