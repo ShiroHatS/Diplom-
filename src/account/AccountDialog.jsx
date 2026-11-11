@@ -19,17 +19,28 @@ export default function AccountDialog({ open, onClose, language, sync }) {
   const [localError, setLocalError] = useState(null);
   const [choices, setChoices] = useState({});
   const [copyStatus, setCopyStatus] = useState('');
+  const [focusTarget, setFocusTarget] = useState(null);
   const error = localError || sync.error;
   const loginNeeded = !sync.user || sync.status === 'expired';
 
   useLayoutEffect(() => {
     if (open && !dialog.current.open) dialog.current.showModal();
     if (!open && dialog.current.open) dialog.current.close();
-    if (!open) { setPassword(''); setRecoveryInput(''); setCopyStatus(''); setLocalError(null); setShowPassword(false); }
+    if (!open) { setPassword(''); setRecoveryInput(''); setCopyStatus(''); setLocalError(null); setShowPassword(false); setFocusTarget(null); }
   }, [open]);
 
+  // Сетевой ответ может прийти до обновления DOM. Фокус переносится только
+  // после React commit, когда сообщение или новое поле уже существует.
+  useLayoutEffect(() => {
+    if (!open || !focusTarget) return;
+    const element = focusTarget === 'error' ? errorBox.current
+      : focusTarget === 'success' ? document.getElementById('recovery-title') || document.getElementById('account-signed-in')
+      : document.getElementById(focusTarget);
+    if (element) { element.focus(); setFocusTarget(null); }
+  }, [open, focusTarget, error, sync.user, sync.recoveryCode, sync.conflicts.length]);
+
   function changeMode(value) { setMode(value); setPassword(''); setRecoveryInput(''); setLocalError(null); sync.clearError(); }
-  function focusError() { requestAnimationFrame(() => errorBox.current?.focus()); }
+  function focusError() { setFocusTarget('error'); }
   async function submit(event) {
     event.preventDefault();
     if (sync.authBusy) return;
@@ -38,7 +49,7 @@ export default function AccountDialog({ open, onClose, language, sync }) {
     if (!/^[a-z0-9_]{3,32}$/.test(cleanName)) { setLocalError('USERNAME_FORMAT'); focusError(); return; }
     if (mode !== 'login' && ([...password].length < 15 || [...password].length > 128)) { setLocalError('PASSWORD_LENGTH'); focusError(); return; }
     const success = await sync.authenticate(mode, { username: cleanName, password, ...(mode === 'recover' ? { recoveryCode: recoveryInput.trim() } : {}) }, mode !== 'recover' && importGuest);
-    if (success) { setPassword(''); setRecoveryInput(''); setImportGuest(false); setChoices({}); requestAnimationFrame(() => (document.getElementById('recovery-title') || document.getElementById('account-signed-in'))?.focus()); }
+    if (success) { setPassword(''); setRecoveryInput(''); setImportGuest(false); setChoices({}); setFocusTarget('success'); }
     else focusError();
   }
   async function copyCode() {
@@ -50,7 +61,7 @@ export default function AccountDialog({ open, onClose, language, sync }) {
     if (sync.conflicts.some(conflict => !choices[conflict.key])) { setLocalError('CHOOSE_CONFLICT'); focusError(); return; }
     setLocalError(null); sync.resolveConflicts(choices); setChoices({});
     // Форма исчезает после выбора. Переносим фокус к результату этого действия.
-    requestAnimationFrame(() => document.getElementById('account-sync-message')?.focus());
+    setFocusTarget('account-sync-message');
   }
 
   return <dialog className="settings-dialog account-dialog" ref={dialog} aria-labelledby="account-title" aria-describedby="account-intro" onClose={() => { sync.clearRecovery(); onClose(); }}>
@@ -74,7 +85,7 @@ export default function AccountDialog({ open, onClose, language, sync }) {
       </> : <>
         <p className="signed-in" id="account-signed-in" tabIndex={-1}><strong>{t.signedIn}</strong> {sync.user.username}</p>
         <p id="account-sync-message" role="status" tabIndex={-1}>{t.statuses[sync.status]}</p><p className="lesson-help">{t.storageHelp}</p>
-        <div className="account-actions"><button type="button" onClick={() => sync.syncNow()} aria-disabled={sync.status === 'syncing' || sync.authBusy}>{t.sync}</button><button type="button" onClick={async () => { if (await sync.logout()) requestAnimationFrame(() => document.getElementById('account-username')?.focus()); }} aria-disabled={sync.authBusy}>{sync.authBusy ? t.submitting : t.logout}</button></div>
+        <div className="account-actions"><button type="button" onClick={() => sync.syncNow()} aria-disabled={sync.status === 'syncing' || sync.authBusy}>{t.sync}</button><button type="button" onClick={async () => { if (await sync.logout()) setFocusTarget('account-username'); }} aria-disabled={sync.authBusy}>{sync.authBusy ? t.submitting : t.logout}</button></div>
       </>}
       {sync.recoveryCode && <section className="recovery-box" aria-labelledby="recovery-title"><h3 id="recovery-title" tabIndex={-1}>{t.recoveryTitle}</h3><p>{t.recoveryHelp}</p><label htmlFor="account-recovery-code">{t.recoveryCode}</label><input id="account-recovery-code" ref={recovery} value={sync.recoveryCode} readOnly autoComplete="off" spellCheck={false} /><button type="button" onClick={copyCode}>{t.copy}</button><p role="status">{copyStatus ? t[copyStatus] : ''}</p></section>}
       {sync.conflicts.length > 0 && <form className="conflict-form" onSubmit={resolve} noValidate><h3>{t.conflictsTitle}</h3><p>{t.conflictsHelp}</p>{sync.conflicts.map(conflict => <fieldset key={conflict.key}><legend>{({ python: 'Python', javascript: 'JavaScript', web: 'HTML + CSS' })[conflict.key.split('-')[0]]} · {t.lesson} {Number(conflict.key.split('-')[1]) + 1}</legend>{['local', 'remote', ...(conflict.guest === undefined ? [] : ['guest'])].map(version => <div className="conflict-version" key={version}><label><input type="radio" name={`conflict-${conflict.key}`} value={version} checked={choices[conflict.key] === version} onChange={() => setChoices(value => ({ ...value, [conflict.key]: version }))} />{t[version]}</label><pre tabIndex={0}>{conflict[version] || t.empty}</pre></div>)}</fieldset>)}<button className="account-primary" type="submit">{t.resolve}</button></form>}

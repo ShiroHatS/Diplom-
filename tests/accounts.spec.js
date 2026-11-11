@@ -13,6 +13,7 @@ async function authenticate(page, name, mode = 'register', importGuest = false, 
   if (importGuest) await dialog.getByRole('checkbox').check();
   await dialog.locator('.account-form button[type="submit"]').click();
   await expect(dialog.locator('.signed-in')).toContainText(name, { timeout: 20000 });
+  await expect(dialog.locator(mode === 'register' ? '#recovery-title' : '#account-signed-in')).toBeFocused();
   const recoveryCode = mode === 'register' ? await dialog.getByLabel('Код восстановления', { exact: true }).inputValue() : null;
   await dialog.getByRole('button', { name: 'Готово', exact: true }).click();
   return recoveryCode;
@@ -133,6 +134,7 @@ test('logout restores the separate guest workspace and another account gets no p
   await editor.fill('print("private account draft")'); await saved(page);
   let dialog = await account(page); await dialog.getByRole('button', { name: 'Выйти', exact: true }).click();
   await expect(dialog.locator('.account-form')).toBeVisible();
+  await expect(dialog.locator('#account-username')).toBeFocused();
   await dialog.getByRole('button', { name: 'Готово', exact: true }).click();
   await expect(page.getByRole('textbox', { name: 'Твой ответ' })).toHaveValue('print("guest draft")');
   const second = username(); await authenticate(page, second);
